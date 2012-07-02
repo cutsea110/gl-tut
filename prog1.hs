@@ -6,7 +6,14 @@ import Graphics.UI.GLUT
 display :: IO ()
 display = do
   clear [ColorBuffer]
+  renderPrimitive LineLoop $ mapM_ vertex vs
   flush
+  where
+    vs :: [Vertex2 GLfloat]
+    vs = [ Vertex2 (-0.9) (-0.9)
+         , Vertex2 0.9 (-0.9)
+         , Vertex2 0.9 0.9
+         , Vertex2 (-0.9) 0.9]
 
 
 init :: IO ()
