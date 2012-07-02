@@ -22,6 +22,14 @@ display = do
          , Vertex2 0.9 0.9
          , Vertex2 (-0.9) 0.9]
 
+resize :: Size -> IO ()
+resize s@(Size w h) = do
+  viewport $= (Position 0 0, s)
+  loadIdentity
+  ortho ((-w')/200.0) (w'/200.0) ((-h')/200.0) (h'/200.0) (-1.0) 1.0 
+  where
+    w',h' :: GLdouble
+    (w', h') = (fromIntegral w, fromIntegral h)
 
 init :: IO ()
 init = clearColor $= Color4 1.0 1.0 1.0 1.0
@@ -32,5 +40,6 @@ main = do
   initialDisplayMode $= [RGBAMode]
   createWindow progName
   displayCallback $= display
+  reshapeCallback $= Just resize
   init
   mainLoop
