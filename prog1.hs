@@ -7,7 +7,7 @@ display :: IO ()
 display = do
   clear [ColorBuffer]
   color red
-  renderPrimitive LineLoop $ mapM_ vertex vs
+  renderPrimitive Polygon $ mapM_ vertex vs
   flush
   where
     red :: Color3 GLdouble
@@ -20,7 +20,7 @@ display = do
 
 
 init :: IO ()
-init = clearColor $= Color4 0.0 0.0 1.0 1.0
+init = clearColor $= Color4 1.0 1.0 1.0 1.0
 
 main :: IO ()
 main = do
