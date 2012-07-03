@@ -24,6 +24,7 @@ display = do
 
 resize :: Size -> IO ()
 resize s@(Size w h) = do
+  print s
   viewport $= (Position 0 0, s)
   loadIdentity
   ortho ((-w')/200.0) (w'/200.0) ((-h')/200.0) (h'/200.0) (-1.0) 1.0 
@@ -36,6 +37,8 @@ init = clearColor $= Color4 1.0 1.0 1.0 1.0
 
 main :: IO ()
 main = do
+  initialWindowPosition $= Position 100 100
+  initialWindowSize $= Size 320 240
   (progName, _) <- getArgsAndInitialize
   initialDisplayMode $= [RGBAMode]
   createWindow progName
