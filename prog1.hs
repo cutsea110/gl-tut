@@ -4,6 +4,7 @@ import Prelude hiding (init)
 import Graphics.UI.GLUT
 import Data.IORef
 import Data.Maybe
+import System.Exit
 
 display :: IORef [Position] -> IO ()
 display rps = do
@@ -42,6 +43,12 @@ keymouse rps rp (MouseButton LeftButton) Up _ p = do
     vertex2D p0
     vertex2D p
   flush
+keymouse _ _ (Char c) _ _ _ = do
+  case c of
+    'q' -> exit
+    'Q' -> exit
+    '\ESC' -> exit
+    _ -> return ()
 keymouse _ _ _ _ _ _ = return ()
 
 vertex2D :: Position -> IO ()
