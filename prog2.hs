@@ -6,6 +6,7 @@ import Graphics.UI.GLUT
 display :: IO ()
 display = do
   clear [ColorBuffer]
+  rotate 25.0 $ Vector3 0.0 1.0 (0.0::GLdouble)  
   renderPrimitive Polygon $ mapM_ draw $ zip colors vs
   flush
   where
