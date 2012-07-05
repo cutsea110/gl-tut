@@ -62,10 +62,13 @@ uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
 uncurry3 f (x,y,z) = f x y z
 
 resize :: ReshapeCallback
-resize s = do
+resize s@(Size w h) = do
   viewport $= (Position 0 0, s)
   loadIdentity
-  ortho (-2.0) 2.0 (-2.0) 2.0 (-2.0) (2.0::GLdouble)
+  perspective 30.0 (w'/h') 1.0 100.0
+  translate $ Vector3 (-0.5) (-0.5) (-5.0::GLdouble)
+  where
+    (w', h') = (fromIntegral w, fromIntegral h)
 
 init :: IO ()
 init = clearColor $= Color4 1.0 1.0 1.0 1.0
