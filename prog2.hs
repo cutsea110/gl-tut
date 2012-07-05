@@ -4,6 +4,7 @@ import Prelude hiding (init)
 import Graphics.UI.GLUT
 import Control.Monad
 import Data.Array
+import Data.IORef
 
 cubeVertex :: Array Int (GLdouble, GLdouble, GLdouble)
 cubeVertex = listArray (0, 7) vs
@@ -37,14 +38,27 @@ cubeEdge = listArray (0, 11) es
       ,(3,7)
       ]
 
-display :: IO ()
-display = do
+idle :: Maybe Window -> IO ()
+idle = postRedisplay
+
+display :: IORef GLdouble -> IO ()
+display r = do
   clear [ColorBuffer]
+  loadIdentity
+  lookAt
+    (Vertex3 3.0 4.0 5.0)
+    (Vertex3 0.0 0.0 0.0)
+    (Vector3 0.0 1.0 0.0)
+  rot <- readIORef r
+  modifyIORef r ((% 360.0).(+1.0))
+  rotate rot $ Vector3 0.0 1.0 0.0
   color $ Color3 0.0 0.0 (0.0::GLdouble)
   renderPrimitive Lines $ do
     forM_ [0..11] renderLine
   flush
   where
+    (%) :: GLdouble -> GLdouble -> GLdouble
+    x % y = if x > y then x - y else x
     renderLine :: Int -> IO ()
     renderLine i = do
       uncurry3 vertex3D f 
@@ -64,24 +78,37 @@ uncurry3 f (x,y,z) = f x y z
 resize :: ReshapeCallback
 resize s@(Size w h) = do
   viewport $= (Position 0 0, s)
+  matrixMode $= Projection
   loadIdentity
   perspective 30.0 (w'/h') 1.0 100.0
-  lookAt 
-    (Vertex3 3.0 4.0 (5.0::GLdouble)) 
-    (Vertex3 0.0 0.0 (0.0::GLdouble)) 
-    (Vector3 0.0 1.0 (0.0::GLdouble))
+  matrixMode $= Modelview 0
   where
     (w', h') = (fromIntegral w, fromIntegral h)
+
+keymouse :: KeyboardMouseCallback
+keymouse (MouseButton LeftButton) Down _ _ = do 
+  idleCallback $= Just (idle Nothing)
+keymouse (MouseButton LeftButton) Up _ _ = do
+  idleCallback $= Nothing
+keymouse (MouseButton RightButton) Down _ _ = do
+  postRedisplay Nothing
+keymouse (Char 'q') _ _ _ = exit
+keymouse (Char 'Q') _ _ _ = exit
+keymouse (Char '\ESC') _ _ _ = exit
+keymouse _ _ _ _ = return ()
 
 init :: IO ()
 init = clearColor $= Color4 1.0 1.0 1.0 1.0
 
 main :: IO ()
 main = do
+  r <- newIORef 0.0
+  
   (progName, _) <- getArgsAndInitialize
   initialDisplayMode $= [RGBAMode]
   createWindow progName
-  displayCallback $= display
+  displayCallback $= display r
   reshapeCallback $= Just resize
+  keyboardMouseCallback $= Just keymouse
   init
   mainLoop
