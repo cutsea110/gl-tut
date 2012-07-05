@@ -2,27 +2,70 @@ module Main where
 
 import Prelude hiding (init)
 import Graphics.UI.GLUT
+import Control.Monad
+import Data.Array
+
+cubeVertex :: Array Int (GLdouble, GLdouble, GLdouble)
+cubeVertex = listArray (0, 7) vs
+  where
+    vs =
+      [(0.0, 0.0, 0.0)
+      ,(1.0, 0.0, 0.0)
+      ,(1.0, 1.0, 0.0)
+      ,(0.0, 1.0, 0.0)
+      ,(0.0, 0.0, 1.0)
+      ,(1.0, 0.0, 1.0)
+      ,(1.0, 1.0, 1.0)
+      ,(0.0, 1.0, 1.0)
+      ]
+
+cubeEdge :: Array Int (Int,Int)
+cubeEdge = listArray (0, 11) es
+  where
+    es =
+      [(0,1)
+      ,(1,2)
+      ,(2,3)
+      ,(3,0)
+      ,(4,5)
+      ,(5,6)
+      ,(6,7)
+      ,(7,4)
+      ,(0,4)
+      ,(1,5)
+      ,(2,6)
+      ,(3,7)
+      ]
 
 display :: IO ()
 display = do
   clear [ColorBuffer]
-  rotate 25.0 $ Vector3 0.0 1.0 (0.0::GLdouble)  
-  renderPrimitive Polygon $ mapM_ draw $ zip colors vs
+  color $ Color3 0.0 0.0 (0.0::GLdouble)
+  renderPrimitive Lines $ do
+    forM_ [0..11] renderLine
   flush
   where
-    draw (c,v) = color c >> vertex v
-    colors :: [Color3 GLdouble]
-    colors = [ Color3 1.0 0.0 0.0
-             , Color3 0.0 1.0 0.0
-             , Color3 0.0 0.0 1.0
-             , Color3 1.0 1.0 0.0
-             ]
-    vs :: [Vertex2 GLfloat]
-    vs = [ Vertex2 (-0.9) (-0.9)
-         , Vertex2 0.9 (-0.9)
-         , Vertex2 0.9 0.9
-         , Vertex2 (-0.9) 0.9]
+    renderLine :: Int -> IO ()
+    renderLine i = do
+      uncurry3 vertex3D f 
+      uncurry3 vertex3D s
+      where
+        f = cubeVertex!(fst(cubeEdge!i))
+        s = cubeVertex!(snd(cubeEdge!i))
 
+vertex3D :: GLdouble -> GLdouble -> GLdouble -> IO ()
+vertex3D x y z = vertex3d $ Vertex3 x y z
+  where
+    vertex3d = vertex :: Vertex3 GLdouble -> IO ()
+  
+uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
+uncurry3 f (x,y,z) = f x y z
+
+resize :: ReshapeCallback
+resize s = do
+  viewport $= (Position 0 0, s)
+  loadIdentity
+  ortho (-2.0) 2.0 (-2.0) 2.0 (-2.0) (2.0::GLdouble)
 
 init :: IO ()
 init = clearColor $= Color4 1.0 1.0 1.0 1.0
@@ -33,5 +76,6 @@ main = do
   initialDisplayMode $= [RGBAMode]
   createWindow progName
   displayCallback $= display
+  reshapeCallback $= Just resize
   init
   mainLoop
