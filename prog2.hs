@@ -66,7 +66,10 @@ resize s@(Size w h) = do
   viewport $= (Position 0 0, s)
   loadIdentity
   perspective 30.0 (w'/h') 1.0 100.0
-  translate $ Vector3 (-0.5) (-0.5) (-5.0::GLdouble)
+  lookAt 
+    (Vertex3 3.0 4.0 (5.0::GLdouble)) 
+    (Vertex3 0.0 0.0 (0.0::GLdouble)) 
+    (Vector3 0.0 1.0 (0.0::GLdouble))
   where
     (w', h') = (fromIntegral w, fromIntegral h)
 
