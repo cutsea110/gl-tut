@@ -55,7 +55,7 @@ display r = do
   color $ Color3 0.0 0.0 (0.0::GLdouble)
   renderPrimitive Lines $ do
     forM_ [0..11] renderLine
-  flush
+  swapBuffers
   where
     (%) :: GLdouble -> GLdouble -> GLdouble
     x % y = if x > y then x - y else x
@@ -105,7 +105,7 @@ main = do
   r <- newIORef 0.0
   
   (progName, _) <- getArgsAndInitialize
-  initialDisplayMode $= [RGBAMode]
+  initialDisplayMode $= [RGBAMode, DoubleBuffered]
   createWindow progName
   displayCallback $= display r
   reshapeCallback $= Just resize
