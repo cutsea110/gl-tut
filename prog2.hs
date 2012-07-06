@@ -6,18 +6,18 @@ import Control.Monad
 import Data.Array
 import Data.IORef
 
-cubeVertex :: Array Int (GLdouble, GLdouble, GLdouble)
+cubeVertex :: Array Int (Vertex3 GLdouble)
 cubeVertex = listArray (0, 7) vs
   where
     vs =
-      [(0.0, 0.0, 0.0)
-      ,(1.0, 0.0, 0.0)
-      ,(1.0, 1.0, 0.0)
-      ,(0.0, 1.0, 0.0)
-      ,(0.0, 0.0, 1.0)
-      ,(1.0, 0.0, 1.0)
-      ,(1.0, 1.0, 1.0)
-      ,(0.0, 1.0, 1.0)
+      [ Vertex3 0.0 0.0 0.0
+      , Vertex3 1.0 0.0 0.0
+      , Vertex3 1.0 1.0 0.0
+      , Vertex3 0.0 1.0 0.0
+      , Vertex3 0.0 0.0 1.0
+      , Vertex3 1.0 0.0 1.0
+      , Vertex3 1.0 1.0 1.0
+      , Vertex3 0.0 1.0 1.0
       ]
 
 cubeFace :: Array Int (Int,Int,Int,Int)
@@ -55,20 +55,12 @@ display r = do
     x % y = if x > y then x - y else x
     renderQuad :: Int -> IO ()
     renderQuad i = do
-      uncurry3 vertex3D $ cubeVertex!x'
-      uncurry3 vertex3D $ cubeVertex!y'
-      uncurry3 vertex3D $ cubeVertex!z'
-      uncurry3 vertex3D $ cubeVertex!w'
+      vertex $ cubeVertex!x'
+      vertex $ cubeVertex!y'
+      vertex $ cubeVertex!z'
+      vertex $ cubeVertex!w'
       where
         (x', y', z', w') = cubeFace!i
-
-vertex3D :: GLdouble -> GLdouble -> GLdouble -> IO ()
-vertex3D x y z = vertex3d $ Vertex3 x y z
-  where
-    vertex3d = vertex :: Vertex3 GLdouble -> IO ()
-
-uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
-uncurry3 f (x,y,z) = f x y z
 
 resize :: ReshapeCallback
 resize s@(Size w h) = do
