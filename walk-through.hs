@@ -10,7 +10,14 @@ display :: DisplayCallback
 display = undefined
 
 resize :: ReshapeCallback
-resize = undefined
+resize s@(Size w h) = do
+  viewport $= (Position 0 0, s)
+  matrixMode $= Projection
+  loadIdentity
+  perspective 30.0 (w'/h') 1.0 100.0
+  matrixMode $= Modelview 0
+  where
+    (w', h') = (fromIntegral w, fromIntegral h)
 
 keyboard :: KeyboardMouseCallback
 keyboard (Char '\ESC') Down _ _ = exit
