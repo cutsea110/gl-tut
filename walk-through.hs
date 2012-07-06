@@ -16,7 +16,12 @@ keyboard :: KeyboardMouseCallback
 keyboard = undefined
 
 init :: IO ()
-init = undefined
+init = do
+  clearColor $= Color4 1.0 1.0 1.0 0.0
+  depthFunc $= Just Lequal
+  cullFace $= Just Front
+  lighting $= Enabled
+  light (Light 0) $= Enabled
 
 main :: IO ()
 main = do
