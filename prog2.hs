@@ -93,6 +93,10 @@ display r = do
     materialAmbientAndDiffuse FrontAndBack $= red
     color $ Color3 0.0 0.0 (0.0::GLdouble)
     cube
+    preservingMatrix $ do
+      translate $ Vector3 1.0 1.0 (1.0::GLdouble)
+      rotate (2*rot) $ Vector3 0.0 1.0 0.0
+      cube
   swapBuffers
   where
     (%) :: GLdouble -> GLdouble -> GLdouble
