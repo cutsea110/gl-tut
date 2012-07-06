@@ -54,6 +54,9 @@ lightPosition = listArray (0, 1) ls
 green :: Color4 GLfloat
 green = Color4 0.0 1.0 0.0 1.0
 
+red :: Color4 GLfloat
+red = Color4 0.8 0.2 0.2 1.0
+
 idle :: Maybe Window -> IO ()
 idle = postRedisplay
 
@@ -70,6 +73,7 @@ display r = do
   rot <- readIORef r
   modifyIORef r ((% 360.0).(+1.0))
   rotate rot $ Vector3 0.0 1.0 0.0
+  materialAmbientAndDiffuse FrontAndBack $= red
   color $ Color3 0.0 0.0 (0.0::GLdouble)
   renderPrimitive Quads $ do
     forM_ [0..5] renderQuad
