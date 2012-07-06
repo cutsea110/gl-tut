@@ -84,7 +84,7 @@ display r = do
   clear [ColorBuffer, DepthBuffer]
   loadIdentity
   lookAt
-    (Vertex3 3.0 4.0 5.0)
+    (Vertex3 6.0 8.0 10.0)
     (Vertex3 0.0 0.0 0.0)
     (Vector3 0.0 1.0 0.0)
   position (Light 0) $= lightPosition!0
@@ -101,6 +101,11 @@ display r = do
       rotate (2*rot) $ Vector3 0.0 1.0 0.0
       materialAmbientAndDiffuse FrontAndBack $= blue
       cube
+      preservingMatrix $ do
+        translate $ Vector3 1.0 1.0 (1.0::GLdouble)
+        rotate (4*rot) $ Vector3 0.0 1.0 0.0
+        materialAmbientAndDiffuse FrontAndBack $= green
+        cube
   swapBuffers
   where
     (%) :: GLdouble -> GLdouble -> GLdouble
