@@ -32,16 +32,16 @@ cubeFace = listArray (0, 5) fs
       ,(3, 2, 6, 7)
       ]
 
-cubeColor :: Array Int (Color3 GLdouble)
-cubeColor = listArray (0, 5) cs
+cubeNormal :: Array Int (Normal3 GLdouble)
+cubeNormal = listArray (0, 5) ns
   where
-    cs =
-      [ Color3 1.0 0.0 0.0
-      , Color3 0.0 1.0 0.0
-      , Color3 0.0 0.0 1.0
-      , Color3 1.0 1.0 0.0
-      , Color3 1.0 0.0 1.0
-      , Color3 0.0 1.0 1.0
+    ns =
+      [ Normal3 0.0 0.0 (-1.0)
+      , Normal3 1.0 0.0 0.0
+      , Normal3 0.0 0.0 1.0
+      , Normal3 (-1.0) 0.0 0.0
+      , Normal3 0.0 (-1.0) 0.0
+      , Normal3 0.0 1.0 0.0
       ]
 
 idle :: Maybe Window -> IO ()
@@ -67,7 +67,7 @@ display r = do
     x % y = if x > y then x - y else x
     renderQuad :: Int -> IO ()
     renderQuad i = do
-      color $ cubeColor!i
+      normal $ cubeNormal!i
       vertex $ cubeVertex!x'
       vertex $ cubeVertex!y'
       vertex $ cubeVertex!z'
@@ -101,6 +101,9 @@ init :: IO ()
 init = do
   clearColor $= Color4 1.0 1.0 1.0 1.0
   depthFunc $= Just Lequal
+  cullFace $= Just Front
+  lighting $= Enabled
+  light (Light 0) $= Enabled
 
 main :: IO ()
 main = do
