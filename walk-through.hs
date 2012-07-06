@@ -13,7 +13,9 @@ resize :: ReshapeCallback
 resize = undefined
 
 keyboard :: KeyboardMouseCallback
-keyboard = undefined
+keyboard (Char '\ESC') Down _ _ = exit
+keyboard (Char 'q') Down _ _ = exit
+keyboard _ _ _ _ = return ()
 
 init :: IO ()
 init = do
