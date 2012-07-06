@@ -57,6 +57,9 @@ green = Color4 0.0 1.0 0.0 1.0
 red :: Color4 GLfloat
 red = Color4 0.8 0.2 0.2 1.0
 
+blue :: Color4 GLfloat
+blue = Color4 0.2 0.2 0.8 1.0
+
 idle :: Maybe Window -> IO ()
 idle = postRedisplay
 
@@ -96,6 +99,7 @@ display r = do
     preservingMatrix $ do
       translate $ Vector3 1.0 1.0 (1.0::GLdouble)
       rotate (2*rot) $ Vector3 0.0 1.0 0.0
+      materialAmbientAndDiffuse FrontAndBack $= blue
       cube
   swapBuffers
   where
