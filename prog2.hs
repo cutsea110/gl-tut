@@ -49,7 +49,7 @@ idle = postRedisplay
 
 display :: IORef GLdouble -> IO ()
 display r = do
-  clear [ColorBuffer]
+  clear [ColorBuffer, DepthBuffer]
   loadIdentity
   lookAt
     (Vertex3 3.0 4.0 5.0)
@@ -98,14 +98,16 @@ keymouse (Char '\ESC') _ _ _ = exit
 keymouse _ _ _ _ = return ()
 
 init :: IO ()
-init = clearColor $= Color4 1.0 1.0 1.0 1.0
+init = do
+  clearColor $= Color4 1.0 1.0 1.0 1.0
+  depthFunc $= Just Lequal
 
 main :: IO ()
 main = do
   r <- newIORef 0.0
   
   (progName, _) <- getArgsAndInitialize
-  initialDisplayMode $= [RGBAMode, DoubleBuffered]
+  initialDisplayMode $= [RGBAMode, DoubleBuffered, WithDepthBuffer]
   createWindow progName
   displayCallback $= display r
   reshapeCallback $= Just resize
