@@ -44,6 +44,16 @@ cubeNormal = listArray (0, 5) ns
       , Normal3 0.0 1.0 0.0
       ]
 
+lightPosition :: Array Int (Vertex4 GLfloat)
+lightPosition = listArray (0, 1) ls
+  where
+    ls = [ Vertex4 0.0 3.0 5.0 1.0
+         , Vertex4 5.0 3.0 0.0 1.0
+         ]
+
+green :: Color4 GLfloat
+green = Color4 0.0 1.0 0.0 1.0
+
 idle :: Maybe Window -> IO ()
 idle = postRedisplay
 
@@ -55,6 +65,8 @@ display r = do
     (Vertex3 3.0 4.0 5.0)
     (Vertex3 0.0 0.0 0.0)
     (Vector3 0.0 1.0 0.0)
+  position (Light 0) $= lightPosition!0
+  position (Light 1) $= lightPosition!1
   rot <- readIORef r
   modifyIORef r ((% 360.0).(+1.0))
   rotate rot $ Vector3 0.0 1.0 0.0
@@ -104,6 +116,9 @@ init = do
   cullFace $= Just Front
   lighting $= Enabled
   light (Light 0) $= Enabled
+  light (Light 1) $= Enabled
+  diffuse (Light 1) $= green
+  specular (Light 1) $= green
 
 main :: IO ()
 main = do
