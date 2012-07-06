@@ -60,6 +60,22 @@ red = Color4 0.8 0.2 0.2 1.0
 idle :: Maybe Window -> IO ()
 idle = postRedisplay
 
+cube :: IO ()
+cube = do
+  renderPrimitive Quads $ do
+    forM_ [0..5] renderQuad
+  where
+    renderQuad :: Int -> IO ()
+    renderQuad i = do
+      normal $ cubeNormal!i
+      vertex $ cubeVertex!x'
+      vertex $ cubeVertex!y'
+      vertex $ cubeVertex!z'
+      vertex $ cubeVertex!w'
+      where
+        (x', y', z', w') = cubeFace!i
+  
+
 display :: IORef GLdouble -> IO ()
 display r = do
   clear [ColorBuffer, DepthBuffer]
@@ -72,24 +88,15 @@ display r = do
   position (Light 1) $= lightPosition!1
   rot <- readIORef r
   modifyIORef r ((% 360.0).(+1.0))
-  rotate rot $ Vector3 0.0 1.0 0.0
-  materialAmbientAndDiffuse FrontAndBack $= red
-  color $ Color3 0.0 0.0 (0.0::GLdouble)
-  renderPrimitive Quads $ do
-    forM_ [0..5] renderQuad
+  preservingMatrix $ do
+    rotate rot $ Vector3 0.0 1.0 0.0
+    materialAmbientAndDiffuse FrontAndBack $= red
+    color $ Color3 0.0 0.0 (0.0::GLdouble)
+    cube
   swapBuffers
   where
     (%) :: GLdouble -> GLdouble -> GLdouble
     x % y = if x > y then x - y else x
-    renderQuad :: Int -> IO ()
-    renderQuad i = do
-      normal $ cubeNormal!i
-      vertex $ cubeVertex!x'
-      vertex $ cubeVertex!y'
-      vertex $ cubeVertex!z'
-      vertex $ cubeVertex!w'
-      where
-        (x', y', z', w') = cubeFace!i
 
 resize :: ReshapeCallback
 resize s@(Size w h) = do
