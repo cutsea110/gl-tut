@@ -32,6 +32,18 @@ cubeFace = listArray (0, 5) fs
       ,(3, 2, 6, 7)
       ]
 
+cubeColor :: Array Int (Color3 GLdouble)
+cubeColor = listArray (0, 5) cs
+  where
+    cs =
+      [ Color3 1.0 0.0 0.0
+      , Color3 0.0 1.0 0.0
+      , Color3 0.0 0.0 1.0
+      , Color3 1.0 1.0 0.0
+      , Color3 1.0 0.0 1.0
+      , Color3 0.0 1.0 1.0
+      ]
+
 idle :: Maybe Window -> IO ()
 idle = postRedisplay
 
@@ -55,6 +67,7 @@ display r = do
     x % y = if x > y then x - y else x
     renderQuad :: Int -> IO ()
     renderQuad i = do
+      color $ cubeColor!i
       vertex $ cubeVertex!x'
       vertex $ cubeVertex!y'
       vertex $ cubeVertex!z'
