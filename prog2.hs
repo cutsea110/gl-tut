@@ -20,22 +20,16 @@ cubeVertex = listArray (0, 7) vs
       ,(0.0, 1.0, 1.0)
       ]
 
-cubeEdge :: Array Int (Int,Int)
-cubeEdge = listArray (0, 11) es
-  where
-    es =
-      [(0,1)
-      ,(1,2)
-      ,(2,3)
-      ,(3,0)
-      ,(4,5)
-      ,(5,6)
-      ,(6,7)
-      ,(7,4)
-      ,(0,4)
-      ,(1,5)
-      ,(2,6)
-      ,(3,7)
+cubeFace :: Array Int (Int,Int,Int,Int)
+cubeFace = listArray (0, 5) fs
+  where 
+    fs =
+      [(0, 1, 2, 3)
+      ,(1, 5, 6, 2)
+      ,(5, 4, 7, 6)
+      ,(4, 0, 3, 7)
+      ,(4, 5, 1, 0)
+      ,(3, 2, 6, 7)
       ]
 
 idle :: Maybe Window -> IO ()
@@ -53,25 +47,26 @@ display r = do
   modifyIORef r ((% 360.0).(+1.0))
   rotate rot $ Vector3 0.0 1.0 0.0
   color $ Color3 0.0 0.0 (0.0::GLdouble)
-  renderPrimitive Lines $ do
-    forM_ [0..11] renderLine
+  renderPrimitive Quads $ do
+    forM_ [0..5] renderQuad
   swapBuffers
   where
     (%) :: GLdouble -> GLdouble -> GLdouble
     x % y = if x > y then x - y else x
-    renderLine :: Int -> IO ()
-    renderLine i = do
-      uncurry3 vertex3D f 
-      uncurry3 vertex3D s
+    renderQuad :: Int -> IO ()
+    renderQuad i = do
+      uncurry3 vertex3D $ cubeVertex!x'
+      uncurry3 vertex3D $ cubeVertex!y'
+      uncurry3 vertex3D $ cubeVertex!z'
+      uncurry3 vertex3D $ cubeVertex!w'
       where
-        f = cubeVertex!(fst(cubeEdge!i))
-        s = cubeVertex!(snd(cubeEdge!i))
+        (x', y', z', w') = cubeFace!i
 
 vertex3D :: GLdouble -> GLdouble -> GLdouble -> IO ()
 vertex3D x y z = vertex3d $ Vertex3 x y z
   where
     vertex3d = vertex :: Vertex3 GLdouble -> IO ()
-  
+
 uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
 uncurry3 f (x,y,z) = f x y z
 
