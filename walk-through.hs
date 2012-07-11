@@ -3,13 +3,21 @@ module Main where
 import Prelude hiding (init)
 import Graphics.UI.GLUT
 import Data.Array
-
+import Data.IORef
 
 data Obj = Obj { tra :: Vector3 GLdouble
                , col :: Color4 GLfloat
                , obj :: Object
                , flv :: Flavour
                }
+
+type Sec = GLdouble
+
+data St = St { win :: Size
+             , cur :: Position
+             , tim :: Sec
+             }
+          deriving Show
 
 scene :: IO ()
 scene = do
@@ -68,8 +76,8 @@ display = do
   clear [ColorBuffer, DepthBuffer]
   loadIdentity
   lookAt
-    (Vertex3 6.0 8.0 10.0)
     (Vertex3 0.0 0.0 0.0)
+    (Vertex3 1.0 0.0 0.0)
     (Vector3 0.0 1.0 0.0)
   position (Light 0) $= lightpos
   scene
@@ -90,6 +98,13 @@ keyboard (Char '\ESC') Down _ _ = exit
 keyboard (Char 'q') Down _ _ = exit
 keyboard _ _ _ _ = return ()
 
+idle :: IORef St -> IdleCallback
+idle r = do
+  st <- readIORef r
+  writeIORef r st { tim = tim st + 0.1 }
+  readIORef r >>= print -- for debug
+  postRedisplay Nothing
+
 init :: IO ()
 init = do
   clearColor $= Color4 1.0 1.0 1.0 0.0
@@ -101,11 +116,17 @@ init = do
 
 main :: IO ()
 main = do
+  r <- newIORef St { win = Size 640 480
+                   , cur = Position 320 240
+                   , tim = 0.0
+                   }
+
   (progName, _) <- getArgsAndInitialize
   initialDisplayMode $= [RGBAMode, WithDepthBuffer]
   createWindow progName
   displayCallback $= display
   reshapeCallback $= Just resize
   keyboardMouseCallback $= Just keyboard
+  idleCallback $= Just (idle r)
   init
   mainLoop
