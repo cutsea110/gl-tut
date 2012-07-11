@@ -137,7 +137,8 @@ init :: IO ()
 init = do
   clearColor $= Color4 1.0 1.0 1.0 1.0
   depthFunc $= Just Lequal
-  cullFace $= Just Front
+  cullFace $= Just Back -- Front なら
+  frontFace $= CW -- CCW
   lighting $= Enabled
   light (Light 0) $= Enabled
   light (Light 1) $= Enabled
