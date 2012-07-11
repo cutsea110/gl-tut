@@ -21,14 +21,7 @@ scene = do
         materialDiffuse Front $= c
         renderObject Solid $ Cube 1.0
     renderGround :: (Int, Int) -> IO ()
-    renderGround (i, j) = do
-      putStr $ show (i, j)
-      putStr "-"
-      putStr $ show (i, j+1)
-      putStr "-"
-      putStr $ show (i+1, j+1)
-      putStr "-"
-      putStrLn $ show (i+1, j)
+    renderGround (i, j) =
       renderPrimitive Quads $ do
         normal $ Normal3 0.0 1.0 (0.0::GLdouble)
         materialDiffuse Front $= ground!(abs(i+j)`mod`2)
