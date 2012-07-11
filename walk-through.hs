@@ -7,6 +7,8 @@ import Data.Array
 
 data Obj = Obj { tra :: Vector3 GLdouble
                , col :: Color4 GLfloat
+               , obj :: Object
+               , flv :: Flavour
                }
 
 scene :: IO ()
@@ -15,11 +17,11 @@ scene = do
   mapM_ renderGround [ (i, j) | i <- [-5,-4..4], j <- [-5,-4..4] ]
   where
     renderBlock :: Obj -> IO ()
-    renderBlock (Obj {tra=t, col=c}) =
+    renderBlock (Obj {obj=o, flv=f, tra=t, col=c}) =
       preservingMatrix $ do
         translate t
         materialDiffuse Front $= c
-        renderObject Solid $ Cube 1.0
+        renderObject f o
     renderGround :: (Int, Int) -> IO ()
     renderGround (i, j) =
       renderPrimitive Quads $ do
@@ -33,16 +35,24 @@ scene = do
         vertex3D :: GLdouble -> GLdouble -> GLdouble -> IO ()
         vertex3D = ((vertex.).).Vertex3
     red, green, blue, yellow :: Obj
-    red = Obj { tra = Vector3 0.0 0.0 (-3.0)
+    red = Obj { obj = Cube 1.2
+              , flv = Solid
+              , tra = Vector3 0.0 0.0 (-3.0)
               , col = Color4 0.8 0.2 0.2 1.0
               }
-    green = Obj { tra = Vector3 0.0 0.0 3.0
+    green = Obj { obj = Icosahedron
+                , flv = Solid
+                , tra = Vector3 0.0 0.0 3.0
                 , col = Color4 0.2 0.8 0.2 1.0
                 }
-    blue = Obj { tra = Vector3 (-3.0) 0.0 0.0
+    blue = Obj { obj = RhombicDodecahedron
+               , flv = Solid
+               , tra = Vector3 (-3.0) 0.0 0.0
                , col = Color4 0.2 0.2 0.8 1.0
                }
-    yellow = Obj { tra = Vector3 3.0 0.0 0.0
+    yellow = Obj { obj = Sphere' 0.7 36 36
+                 , flv = Solid
+                 , tra = Vector3 3.0 0.0 0.0
                  , col = Color4 0.8 0.8 0.2 1.0
                  }
     ground :: Array Int (Color4 GLfloat)
