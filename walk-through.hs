@@ -21,9 +21,17 @@ scene = do
         materialDiffuse Front $= c
         renderObject Solid $ Cube 1.0
     renderGround :: (Int, Int) -> IO ()
-    renderGround (i, j) =
+    renderGround (i, j) = do
+      putStr $ show (i, j)
+      putStr "-"
+      putStr $ show (i, j+1)
+      putStr "-"
+      putStr $ show (i+1, j+1)
+      putStr "-"
+      putStrLn $ show (i+1, j)
       renderPrimitive Quads $ do
-        materialDiffuse Front $= ground!((i+j)`mod`1)
+        normal $ Normal3 0.0 1.0 (0.0::GLdouble)
+        materialDiffuse Front $= ground!(abs(i+j)`mod`2)
         vertex3D (fromIntegral i) (-0.5) (fromIntegral j)
         vertex3D (fromIntegral i) (-0.5) (fromIntegral (j+1))
         vertex3D (fromIntegral (i+1)) (-0.5) (fromIntegral (j+1))
@@ -53,13 +61,17 @@ scene = do
 display :: DisplayCallback
 display = do
   let lightpos = Vertex4 3.0 4.0 5.0 1.0
-      (ex, ez) = (0.0, 0.0) :: (GLfloat, GLfloat)
-      r = 0.0 :: GLfloat
+--      (ex, ez) = (0.0, -20.0) :: (GLfloat, GLfloat)
+--      r = 0.0 :: GLfloat
   
   clear [ColorBuffer, DepthBuffer]
   loadIdentity
-  rotate r $ Vector3  0.0 1.0 0.0
-  translate $ Vector3 ex 0.0 ez
+  lookAt 
+    (Vertex3 6.0 8.0 10.0)
+    (Vertex3 0.0 0.0 0.0)
+    (Vector3 0.0 1.0 0.0)
+--  rotate r $ Vector3  0.0 1.0 0.0
+--  translate $ Vector3 ex 0.0 ez
   position (Light 0) $= lightpos
   scene
   flush
@@ -83,7 +95,7 @@ init :: IO ()
 init = do
   clearColor $= Color4 1.0 1.0 1.0 0.0
   depthFunc $= Just Lequal
-  cullFace $= Just Front
+  cullFace $= Just Back
   lighting $= Enabled
   light (Light 0) $= Enabled
 
