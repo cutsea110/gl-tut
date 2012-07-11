@@ -35,9 +35,9 @@ scene = do
         vertex3D :: GLdouble -> GLdouble -> GLdouble -> IO ()
         vertex3D = ((vertex.).).Vertex3
     red, green, blue, yellow :: Obj
-    red = Obj { obj = Cube 1.2
+    red = Obj { obj = Torus 0.4 0.8 10 10
               , flv = Solid
-              , tra = Vector3 0.0 0.0 (-3.0)
+              , tra = Vector3 0.0 1.0 (-3.0)
               , col = Color4 0.8 0.2 0.2 1.0
               }
     green = Obj { obj = Icosahedron
