@@ -37,15 +37,15 @@ scene = do
     red, green, blue, yellow :: Obj
     red = Obj { obj = Torus 0.4 0.8 10 10
               , flv = Solid
-              , tra = Vector3 0.0 1.0 (-3.0)
+              , tra = Vector3 0.0 0.0 (-3.0)
               , col = Color4 0.8 0.2 0.2 1.0
               }
-    green = Obj { obj = Icosahedron
-                , flv = Solid
+    green = Obj { obj = Teapot 0.8
+                , flv = Wireframe -- SolidにするとcullFace Frontになる
                 , tra = Vector3 0.0 0.0 3.0
                 , col = Color4 0.2 0.8 0.2 1.0
                 }
-    blue = Obj { obj = RhombicDodecahedron
+    blue = Obj { obj = Cube 1.0
                , flv = Solid
                , tra = Vector3 (-3.0) 0.0 0.0
                , col = Color4 0.2 0.2 0.8 1.0
@@ -64,17 +64,13 @@ scene = do
 display :: DisplayCallback
 display = do
   let lightpos = Vertex4 3.0 4.0 5.0 1.0
---      (ex, ez) = (0.0, -20.0) :: (GLfloat, GLfloat)
---      r = 0.0 :: GLfloat
   
   clear [ColorBuffer, DepthBuffer]
   loadIdentity
-  lookAt 
+  lookAt
     (Vertex3 6.0 8.0 10.0)
     (Vertex3 0.0 0.0 0.0)
     (Vector3 0.0 1.0 0.0)
---  rotate r $ Vector3  0.0 1.0 0.0
---  translate $ Vector3 ex 0.0 ez
   position (Light 0) $= lightpos
   scene
   flush
@@ -99,6 +95,7 @@ init = do
   clearColor $= Color4 1.0 1.0 1.0 0.0
   depthFunc $= Just Lequal
   cullFace $= Just Back
+  frontFace $= CCW
   lighting $= Enabled
   light (Light 0) $= Enabled
 
