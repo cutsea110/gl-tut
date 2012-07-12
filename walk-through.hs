@@ -13,81 +13,19 @@ data Obj = Obj { tra :: Vector3 GLdouble
 
 type Sec = GLdouble
 
-data St = St { win :: Size
-             , cur :: Position
-             , tim :: Sec
-             , vel :: Vector3 GLdouble -- ワールド座標系での移動ベクトル
-             , pos :: Vertex3 GLdouble -- ワールド座標系での位置
-             }
-        deriving Show
-
-data Pole = Pole { r :: GLdouble
-                 , theta :: GLdouble
-                 }
-        deriving Show
-
--- マウスカーソルの位置から自分視点での移動ベクトルを求める
-direction :: Size -> Position -> Vector3 GLdouble
-direction (Size w h) (Position x z) = Vector3 (x'-w'/2) 0.0 (h'/2-z')
-  where
-    (w', h') = (fromIntegral w, fromIntegral h)
-    (x', z') = (fromIntegral x, fromIntegral z)
-    v = sqrt $ x'^2+z'^2
-
--- 自分視点の移動ベクトルをワールド座標系での移動ベクトルに変換する.
--- ただし自分視点は直前の移動ベクトル基準なので変換が入る.
--- 
--- すでにワールド座標系で(x0, 0, z0)ベクトルで移動中だとする.
--- これはv0=√x0^2+y0^2の速さでsinθ=x0/v0,cosθ=z0/v0なる時計回りに角度θで移動していることになる.
--- 現在の自分視点はこのθ傾いた状態をz軸とみなした状態での移動ベクトルとなる.
--- 移動ベクトルを(x1, 0, z1)とすると、v1=√x1^2+z1^2でsinφ=x1/v1,cosφ=z1/v1なる時計回りの角度φで進行しようとしている.
--- この移動ベクトルはワールド座標系では(θ+φ)だけ傾いた方向への移動にあたる.
--- (x1, 0, z1)をワールド座標系に落した移動ベクトルを(x', 0, z')とすると,
--- sin(θ+φ)=x'/v1, cos(θ+φ)=z'/v1が成立している.(図を書け)
--- 予備式としては,
---   v0 = √x0^2+z0^2
---   sinθ=x0/v0
---   cosθ=z0/v0
---   v1 = √x1^2+z1^2
---   sinφ=x1/v1
---   cosφ=z1/v1
---
--- 三角関数の加法定理から,
---   sin(θ+φ)=x'/v1 = sinθcosφ+sinθcosφ = x0/v0*z1/v1+x1/v1*z0/v0
---             x' = (x0*z1+x1*z0)/v0
---   cos(θ+φ)=z'/v1 = cosθcosφ-sinθsinφ = z0/v0*z1/v1-x0/v0*x1/v1
---             z' = (z0*z1-x0x1)/v0
--- ∴ワールド座標系での移動ベクトルは (x', 0, z') = ((x0*z1+x1*z0)/v0, 0, (z0*z1-x0*x1)/v0)
---
-direction' :: Vector3 GLdouble -> Vector3 GLdouble -> Vector3 GLdouble
-direction' (Vector3 x0 _ z0) (Vector3 x1 _ z1) = Vector3 ((x0*z1+x1*z0)/v0) 0.0 ((z0*z1-x0*x1)/v0)
-  where
-    v0 = sqrt $ x0^2+z0^2
-
-move :: St -> St
-move st@(St { pos=p0, vel=v0, tim=t }) = st { pos = move' p0 v0 t, tim = 0.0 }
-  where
-    move' :: Vertex3 GLdouble -> Vector3 GLdouble -> Sec -> Vertex3 GLdouble
-    move' (Vertex3 x0 y0 z0) (Vector3 vx vy vz) t = Vertex3 (x0+vx*t) (y0+vy*t) (z0+vz*t)
-
--- 自分視点の新しい移動ベクトルとStから移動と新しい速度ベクトルの設定をする
-turn :: Vector3 GLdouble -> St -> St
-turn v1 st@(St { pos=p0, vel=v0, tim=t }) = st' { vel = v' }
-  where
-    st' = move st
-    v' = direction' v0 v1
-
-toPole :: Vector3 GLdouble -> Pole
-toPole (Vector3 x y z) = Pole { r=r', theta=theta' }
-  where
-    r' = sqrt $ x^2+z^2
-    theta' = asin (x/r') -- = acos (z/r')
-
-deg2rad :: GLdouble -> GLdouble
+deg2rad :: GLdouble -> GLdouble 
 deg2rad deg = deg*pi/180
 
-rad2deg :: GLdouble -> GLdouble
-rad2deg rad = rad*180/pi
+data St = St { win :: Size
+             , cur :: Position
+             , r :: GLdouble -- 視点の向き
+             , v :: GLdouble -- 進行方向に対する速度
+             , theta :: GLdouble -- 角度
+             , t :: Sec -- 時間
+             , vel :: Vector3 GLdouble -- 速度ベクトル
+             , pos :: Vector3 GLdouble -- 視点の位置
+             }
+        deriving Show
 
 scene :: IO ()
 scene = do
@@ -140,21 +78,32 @@ scene = do
              ]
 
 display :: IORef St -> DisplayCallback
-display r = do
-  st <- readIORef r
-  print st
-
+display ref = do
+  st@St { v=v'
+        , t=t'
+        , theta=theta'
+        , r=r'
+        , vel=Vector3 vx vy vz
+        , pos = Vector3 ex ey ez } <- readIORef ref
+  
+  let r'' = theta'*t'
+      (vx'', vz'') = (-v'*sin(deg2rad (abs r'))*signum r', v'*cos(deg2rad(abs r')))
+      (ex'', ez'') = (ex+0.01*vx''*t', ez+0.01*vz''*t')
+      
+  writeIORef ref st { r=r''
+                    , vel=Vector3 vx'' vy vz''
+                    , pos=Vector3 ex'' ey ez''
+                    }
+  
   let lightpos = Vertex4 3.0 4.0 5.0 1.0
   
   clear [ColorBuffer, DepthBuffer]
   loadIdentity
-  lookAt
-    (Vertex3 0.0 0.0 0.0)
-    (Vertex3 1.0 0.0 0.0)
-    (Vector3 0.0 1.0 0.0)
+  rotate r'' (Vector3 0.0 1.0 0.0)
+  translate $ Vector3 ex'' 0.0 ez''
   position (Light 0) $= lightpos
   scene
-  flush
+  swapBuffers
 
 resize :: IORef St -> ReshapeCallback
 resize r s@(Size w h) = do
@@ -164,7 +113,7 @@ resize r s@(Size w h) = do
   viewport $= (Position 0 0, s)
   matrixMode $= Projection
   loadIdentity
-  perspective 30.0 (w'/h') 1.0 100.0
+  perspective 60.0 (w'/h') 1.0 1000.0
   matrixMode $= Modelview 0
   where
     (w', h') = (fromIntegral w, fromIntegral h)
@@ -175,16 +124,20 @@ keyboard (Char 'q') Down _ _ = exit
 keyboard _ _ _ _ = return ()
 
 mouse :: IORef St -> MotionCallback
-mouse r c = do
-  st <- readIORef r
-  writeIORef r st { cur=c }
+mouse r c@(Position x y) = do
+  st@St { win=Size w h } <- readIORef r
+  let st' = st { cur = c, theta = theta', v = v' }
+      theta' = signum (x'-w'/2) * abs (1.0-2*x'/w') * 2
+      v' = signum (h'/2-y') * abs (h'/2-y') / 2000
+      (x', y') = (fromIntegral x, fromIntegral y)
+      (w', h') = (fromIntegral w, fromIntegral h)
+  writeIORef r st'
   postRedisplay Nothing
 
 idle :: IORef St -> IdleCallback
 idle r = do
   st <- readIORef r
-  writeIORef r st { tim = tim st + 0.1 }
-  readIORef r >>= print -- for debug
+  writeIORef r st { t = t st + 0.1 }
   postRedisplay Nothing
 
 init :: IO ()
@@ -196,17 +149,23 @@ init = do
   lighting $= Enabled
   light (Light 0) $= Enabled
 
+
+initSt = St { win = Size 640 480
+            , cur = Position 320 220
+            , t = 0.0
+            , v = 0.0
+            , theta = 0.0
+            , r = 0.0
+            , vel = Vector3 0.0 0.0 0.0
+            , pos = Vector3 0.0 0.0 0.0
+            }
+
 main :: IO ()
 main = do
-  r <- newIORef St { win = Size 640 480
-                   , cur = Position 320 240
-                   , tim = 0.0
-                   , vel = Vector3 0.0 0.0 0.0
-                   , pos = Vertex3 0.0 0.0 0.0
-                   }
+  r <- newIORef initSt
 
   (progName, _) <- getArgsAndInitialize
-  initialDisplayMode $= [RGBAMode, WithDepthBuffer]
+  initialDisplayMode $= [RGBAMode, DoubleBuffered, WithDepthBuffer]
   createWindow progName
   displayCallback $= display r
   reshapeCallback $= Just (resize r)
