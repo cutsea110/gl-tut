@@ -16,6 +16,8 @@ type Sec = GLdouble
 data St = St { win :: Size
              , cur :: Position
              , tim :: Sec
+             , vel :: Vector3 GLdouble -- ワールド座標系での移動ベクトル
+             , pos :: Vertex3 GLdouble -- ワールド座標系での位置
              }
         deriving Show
 
@@ -186,6 +188,8 @@ main = do
   r <- newIORef St { win = Size 640 480
                    , cur = Position 320 240
                    , tim = 0.0
+                   , vel = Vector3 0.0 0.0 0.0
+                   , pos = Vertex3 0.0 0.0 0.0
                    }
 
   (progName, _) <- getArgsAndInitialize
