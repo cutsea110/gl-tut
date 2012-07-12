@@ -153,6 +153,12 @@ keyboard (Char '\ESC') Down _ _ = exit
 keyboard (Char 'q') Down _ _ = exit
 keyboard _ _ _ _ = return ()
 
+mouse :: IORef St -> MotionCallback
+mouse r c = do
+  st <- readIORef r
+  writeIORef r st { cur=c }
+  postRedisplay Nothing
+
 idle :: IORef St -> IdleCallback
 idle r = do
   st <- readIORef r
@@ -183,5 +189,6 @@ main = do
   reshapeCallback $= Just resize
   keyboardMouseCallback $= Just keyboard
   idleCallback $= Just (idle r)
+  passiveMotionCallback $= Just (mouse r)
   init
   mainLoop
