@@ -64,6 +64,19 @@ direction' (Vector3 x0 _ z0) (Vector3 x1 _ z1) = Vector3 ((x0*z1+x1*z0)/v0) 0.0 
   where
     v0 = sqrt $ x0^2+z0^2
 
+move :: St -> St
+move st@(St { pos=p0, vel=v0, tim=t }) = st { pos = move' p0 v0 t, tim = 0.0 }
+  where
+    move' :: Vertex3 GLdouble -> Vector3 GLdouble -> Sec -> Vertex3 GLdouble
+    move' (Vertex3 x0 y0 z0) (Vector3 vx vy vz) t = Vertex3 (x0+vx*t) (y0+vy*t) (z0+vz*t)
+
+-- 自分視点の新しい移動ベクトルとStから移動と新しい速度ベクトルの設定をする
+turn :: Vector3 GLdouble -> St -> St
+turn v1 st@(St { pos=p0, vel=v0, tim=t }) = st' { vel = v' }
+  where
+    st' = move st
+    v' = direction' v0 v1
+
 toPole :: Vector3 GLdouble -> Pole
 toPole (Vector3 x y z) = Pole { r=r', theta=theta' }
   where
