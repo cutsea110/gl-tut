@@ -124,8 +124,11 @@ scene = do
              , Color4 0.3 0.3 0.3 1.0
              ]
 
-display :: DisplayCallback
-display = do
+display :: IORef St -> DisplayCallback
+display r = do
+  st <- readIORef r
+  print st
+
   let lightpos = Vertex4 3.0 4.0 5.0 1.0
   
   clear [ColorBuffer, DepthBuffer]
@@ -138,8 +141,11 @@ display = do
   scene
   flush
 
-resize :: ReshapeCallback
-resize s@(Size w h) = do
+resize :: IORef St -> ReshapeCallback
+resize r s@(Size w h) = do
+  st <- readIORef r
+  writeIORef r st { win=s }
+
   viewport $= (Position 0 0, s)
   matrixMode $= Projection
   loadIdentity
@@ -185,8 +191,8 @@ main = do
   (progName, _) <- getArgsAndInitialize
   initialDisplayMode $= [RGBAMode, WithDepthBuffer]
   createWindow progName
-  displayCallback $= display
-  reshapeCallback $= Just resize
+  displayCallback $= display r
+  reshapeCallback $= Just (resize r)
   keyboardMouseCallback $= Just keyboard
   idleCallback $= Just (idle r)
   passiveMotionCallback $= Just (mouse r)
