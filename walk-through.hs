@@ -17,7 +17,62 @@ data St = St { win :: Size
              , cur :: Position
              , tim :: Sec
              }
-          deriving Show
+        deriving Show
+
+data Pole = Pole { r :: GLdouble
+                 , theta :: GLdouble
+                 }
+        deriving Show
+
+-- マウスカーソルの位置から自分視点での移動ベクトルを求める
+direction :: Size -> Position -> Vector3 GLdouble
+direction (Size w h) (Position x z) = Vector3 (x'-w'/2) 0.0 (h'/2-z')
+  where
+    (w', h') = (fromIntegral w, fromIntegral h)
+    (x', z') = (fromIntegral x, fromIntegral z)
+    v = sqrt $ x'^2+z'^2
+
+-- 自分視点の移動ベクトルをワールド座標系での移動ベクトルに変換する.
+-- ただし自分視点は直前の移動ベクトル基準なので変換が入る.
+-- 
+-- すでにワールド座標系で(x0, 0, z0)ベクトルで移動中だとする.
+-- これはv0=√x0^2+y0^2の速さでsinθ=x0/v0,cosθ=z0/v0なる時計回りに角度θで移動していることになる.
+-- 現在の自分視点はこのθ傾いた状態をz軸とみなした状態での移動ベクトルとなる.
+-- 移動ベクトルを(x1, 0, z1)とすると、v1=√x1^2+z1^2でsinφ=x1/v1,cosφ=z1/v1なる時計回りの角度φで進行しようとしている.
+-- この移動ベクトルはワールド座標系では(θ+φ)だけ傾いた方向への移動にあたる.
+-- (x1, 0, z1)をワールド座標系に落した移動ベクトルを(x', 0, z')とすると,
+-- sin(θ+φ)=x'/v1, cos(θ+φ)=z'/v1が成立している.(図を書け)
+-- 予備式としては,
+--   v0 = √x0^2+z0^2
+--   sinθ=x0/v0
+--   cosθ=z0/v0
+--   v1 = √x1^2+z1^2
+--   sinφ=x1/v1
+--   cosφ=z1/v1
+--
+-- 三角関数の加法定理から,
+--   sin(θ+φ)=x'/v1 = sinθcosφ+sinθcosφ = x0/v0*z1/v1+x1/v1*z0/v0
+--             x' = (x0*z1+x1*z0)/v0
+--   cos(θ+φ)=z'/v1 = cosθcosφ-sinθsinφ = z0/v0*z1/v1-x0/v0*x1/v1
+--             z' = (z0*z1-x0x1)/v0
+-- ∴ワールド座標系での移動ベクトルは (x', 0, z') = ((x0*z1+x1*z0)/v0, 0, (z0*z1-x0*x1)/v0)
+--
+direction' :: Vector3 GLdouble -> Vector3 GLdouble -> Vector3 GLdouble
+direction' (Vector3 x0 _ z0) (Vector3 x1 _ z1) = Vector3 ((x0*z1+x1*z0)/v0) 0.0 ((z0*z1-x0*x1)/v0)
+  where
+    v0 = sqrt $ x0^2+z0^2
+
+toPole :: Vector3 GLdouble -> Pole
+toPole (Vector3 x y z) = Pole { r=r', theta=theta' }
+  where
+    r' = sqrt $ x^2+z^2
+    theta' = asin (x/r') -- = acos (z/r')
+
+deg2rad :: GLdouble -> GLdouble
+deg2rad deg = deg*pi/180
+
+rad2deg :: GLdouble -> GLdouble
+rad2deg rad = rad*180/pi
 
 scene :: IO ()
 scene = do
